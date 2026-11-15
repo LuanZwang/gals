@@ -46,6 +46,17 @@ public class MainWindow extends JFrame
 	private FiniteAutomata fa = null;
 	private Grammar gram = null;
 	
+	public InputPane getInputPane()
+	{
+		return inPane;
+	}
+	
+	/** InputPane já criado, ou null durante a construção da janela. */
+	static InputPane peekInputPane()
+	{
+		return singleton == null ? null : singleton.inPane;
+	}
+	
 	public void setChanged()
 	{
 		needRebuildFA = true;
@@ -116,6 +127,8 @@ public class MainWindow extends JFrame
 		}
 			
 		inPane.setData(lsd.getData());
+		// arquivo recém-aberto: Ctrl+Z não deve "desabrir" o conteúdo
+		inPane.clearHistory();
 	}
 	
 	public InputPane.Data getData()
@@ -163,6 +176,11 @@ public class MainWindow extends JFrame
 		file.addSeparator();
     	file.add(new JMenuItem(Actions.close));
     	
+    	JMenu edit = new JMenu("Editar");
+    	
+    	edit.add(new JMenuItem(Actions.undo));
+    	edit.add(new JMenuItem(Actions.redo));
+    	
     	JMenu tools = new JMenu("Ferramentas");
 
     	tools.add(new JMenuItem(Actions.verify));
@@ -203,6 +221,7 @@ public class MainWindow extends JFrame
     	help.add(Actions.about);
 
 		menuBar.add(file);
+		menuBar.add(edit);
 		//menuBar.add(transform);
 		menuBar.add(tools);
 		menuBar.add(doc);
@@ -218,6 +237,11 @@ public class MainWindow extends JFrame
 		toolbar.add(Actions.new_);
 		toolbar.add(Actions.load);
 		toolbar.add(Actions.save);
+		
+		toolbar.addSeparator();
+		
+		toolbar.add(Actions.undo).setFocusable(false);
+		toolbar.add(Actions.redo).setFocusable(false);
 		
 		toolbar.addSeparator();
 		

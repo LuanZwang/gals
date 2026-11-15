@@ -32,7 +32,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
-import javax.swing.undo.UndoManager;
 
 public class Actions
 {
@@ -70,9 +69,7 @@ public class Actions
 	
 	public static void setSaved(boolean s)
 	{
-		if (s)
-			UNDO_MAN.discardAllEdits();
-			
+		// A versão original descartava todo o histórico de desfazer ao salvar.
 		saved = s;
 		changed = !s;		
 	}
@@ -141,6 +138,10 @@ public class Actions
 	
 	public static final Action save = new ToolTipedAction("Salvar", SAVE)
 	{
+		{
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK));
+		}
+		
 		public void actionPerformed(ActionEvent e) 
 		{
 			if (file == null/*! saved*/)
@@ -166,6 +167,10 @@ public class Actions
 	
 	public static final Action saveAs = new AbstractAction("Salvar Como...")
 	{
+		{
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK));
+		}
+		
 		public void actionPerformed(ActionEvent e) 
 		{
             FILE_CHOOSER.setFileFilter(FileFilters.GALS_FILTER);
@@ -185,6 +190,10 @@ public class Actions
 	
 	public static final Action new_ = new ToolTipedAction("Novo", NEW, "Criar Novo Arquivo")
 	{
+		{
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
+		}
+		
 		public void actionPerformed(ActionEvent e) 
 		{
 			if (checkSaved())
@@ -201,11 +210,25 @@ public class Actions
 		saved = false;
 		changed = false;
 		file = null;
-		UNDO_MAN.discardAllEdits();
-	}	
+	}
+	
+	/** Habilita/desabilita Desfazer e Refazer conforme o editor ativo. */
+	public static void updateUndoState()
+	{
+		InputPane pane = MainWindow.peekInputPane();
+		if (pane != null && pane.getActiveEditor() != null)
+		{
+			undo.setEnabled(pane.canUndo());
+			redo.setEnabled(pane.canRedo());
+		}
+	}
 	
 	public static final Action load = new ToolTipedAction("Abrir...", OPEN, "Abrir Arquivo")
 	{
+		{
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_MASK));
+		}
+		
 		public void actionPerformed(ActionEvent e) 
 		{
 			if (checkSaved())
@@ -358,7 +381,8 @@ public class Actions
                 if (s == -1)
                     msg = "NÃO possui recursão";
                 else
-                    msg = "Foi detectada recursão à esquerda (direta ou indireta)\n" +                        " em produções iniciadas por \""+g.getSymbols()[s]+"\"";
+                    msg = "Foi detectada recursão à esquerda (direta ou indireta)\n" +
+                        " em produções iniciadas por \""+g.getSymbols()[s]+"\"";
                     /*                   
                 if (g.hasLeftRecursion())
                     msg = "Possui recursão";
@@ -605,36 +629,31 @@ public class Actions
         }		
 	};
 	
-	public static final UndoManager UNDO_MAN = new UndoManager();
-	
-	public static final Action undo = new ToolTipedAction("Desfazer", UNDO)
+	// Desfazer/Refazer atuam no editor que teve foco por último. Os atalhos
+	// (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z) são registrados em cada editor pelo InputPane.
+	public static final Action undo = new ToolTipedAction("Desfazer", UNDO, "Desfazer (Ctrl+Z)")
 	{
 		{
 			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK));
-			
+			setEnabled(false);
 		}
 	
 		public void actionPerformed(ActionEvent e) 
 		{
-			if (UNDO_MAN.canUndo())
-				UNDO_MAN.undo();
-			else
-				Toolkit.getDefaultToolkit().beep();
+			MainWindow.getInstance().getInputPane().undo();
 		}	
 	};
 	
-	public static final Action redo = new ToolTipedAction("Resfazer", REDO)
+	public static final Action redo = new ToolTipedAction("Refazer", REDO, "Refazer (Ctrl+Y)")
 	{
 		{
-			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_MASK | InputEvent.SHIFT_MASK)); 
+			putValue(ACCELERATOR_KEY,KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_MASK)); 
+			setEnabled(false);
 		}
 
 		public void actionPerformed(ActionEvent e) 
 		{
-			if (UNDO_MAN.canRedo())
-				UNDO_MAN.redo();
-			else
-				Toolkit.getDefaultToolkit().beep();
+			MainWindow.getInstance().getInputPane().redo();
 		}	
 	};
 	
@@ -746,11 +765,21 @@ public class Actions
 	{
 		public void actionPerformed(ActionEvent e)
 		{
+			// A versão original não perguntava se queria salvar e mantinha o arquivo aberto
+			// como destino: "Salvar" depois de importar sobrescrevia o .gals anterior.
+			if (!checkSaved())
+				return;
+			
 			try
 			{					
 				GalsData lsd = new BNFImporter().importGAS();
 				if (lsd != null)
-					MainWindow.getInstance().updateData(lsd);				
+				{
+					MainWindow.getInstance().updateData(lsd);
+					file = null;
+					saved = false;
+					changed = true;
+				}
 			}
 			catch (AnalysisError ae)
 			{

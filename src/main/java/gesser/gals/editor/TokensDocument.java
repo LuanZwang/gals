@@ -48,7 +48,7 @@ public class TokensDocument extends SyntaxDocument
 					att = STRING;
 					break;
 				case LineScanner.RE: 
-					if (t.getLexeme().charAt(0) == '!')
+					if (t.getLexeme().length() > 0 && t.getLexeme().charAt(0) == '!')
 					{
 						setCharacterAttributes(oldPos, pos-oldPos, NORMAL, true);
 						setCharacterAttributes(pos, 1, OPERATOR, true);

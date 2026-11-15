@@ -3,7 +3,9 @@ package gesser.gals;
 import gesser.gals.analyser.AnalysisError;
 import gesser.gals.editor.BNFDocument;
 import gesser.gals.editor.DefinitionsDocument;
+import gesser.gals.editor.EditHistory;
 import gesser.gals.editor.NTDocument;
+import gesser.gals.editor.SyntaxDocument;
 import gesser.gals.editor.TokensDocument;
 import gesser.gals.generator.OptionsDialog;
 import gesser.gals.generator.parser.Grammar;
@@ -14,6 +16,11 @@ import gesser.gals.util.MetaException;
 
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -21,6 +28,8 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.Document;
@@ -40,6 +49,9 @@ public class InputPane extends JPanel implements MouseListener, UndoableEditList
 	private JEditorPane nonTerminals = new JEditorPane();
 	private JEditorPane tokens       = new JEditorPane();
 	private JEditorPane definitions  = new JEditorPane();
+	
+	/** Editor que recebeu foco por último; alvo de Desfazer/Refazer da barra e do menu. */
+	private JEditorPane activeEditor = grammar;
 	
 	private JPanel base = new JPanel(new BorderLayout());
 	private JList errorList = new JList();
@@ -136,10 +148,10 @@ public class InputPane extends JPanel implements MouseListener, UndoableEditList
 	
 	public void setData(Data d)
 	{
-		definitions.setText(d.getDefinitions());
-		tokens.setText(d.getTokens());
-		nonTerminals.setText(d.getNonTerminals());				
-		grammar.setText(d.getGrammar());
+		setTextAsOneEdit(definitions, d.getDefinitions());
+		setTextAsOneEdit(tokens, d.getTokens());
+		setTextAsOneEdit(nonTerminals, d.getNonTerminals());
+		setTextAsOneEdit(grammar, d.getGrammar());
 		
 		definitions.setCaretPosition(0);
 		tokens.setCaretPosition(0);
@@ -155,6 +167,7 @@ public class InputPane extends JPanel implements MouseListener, UndoableEditList
 		nonTerminals.setText("");
 		tokens.setText("");
 		definitions.setText("");
+		clearHistory();
 		OptionsDialog.getInstance().reset();
 		MainWindow.getInstance().setChanged();
 	}
@@ -237,9 +250,82 @@ public class InputPane extends JPanel implements MouseListener, UndoableEditList
 	
 	public void undoableEditHappened(UndoableEditEvent e)
 	{
-		Actions.UNDO_MAN.addEdit(e.getEdit());
+		// O desfazer é feito pelo EditHistory de cada documento;
+		// este listener só marca o arquivo como alterado.
 		Actions.setSaved(false);
 		MainWindow.getInstance().setChanged();
+	}
+	
+	public JEditorPane getActiveEditor()
+	{
+		return activeEditor;
+	}
+	
+	private static EditHistory historyOf(JEditorPane pane)
+	{
+		return ((SyntaxDocument)pane.getDocument()).getHistory();
+	}
+	
+	public boolean canUndo()
+	{
+		return historyOf(activeEditor).canUndo();
+	}
+	
+	public boolean canRedo()
+	{
+		return historyOf(activeEditor).canRedo();
+	}
+	
+	public void undo()
+	{
+		undo(activeEditor);
+	}
+	
+	public void redo()
+	{
+		redo(activeEditor);
+	}
+	
+	private static void undo(JEditorPane pane)
+	{
+		moveCaret(pane, historyOf(pane).undo());
+	}
+	
+	private static void redo(JEditorPane pane)
+	{
+		moveCaret(pane, historyOf(pane).redo());
+	}
+	
+	private static void moveCaret(JEditorPane pane, int caret)
+	{
+		if (caret < 0)
+			Toolkit.getDefaultToolkit().beep();
+		else
+			pane.setCaretPosition(Math.min(caret, pane.getDocument().getLength()));
+	}
+	
+	/** Apaga o histórico de desfazer de todos os editores (novo arquivo / arquivo aberto). */
+	public void clearHistory()
+	{
+		JEditorPane[] panes = {definitions, tokens, nonTerminals, grammar};
+		for (int i=0; i<panes.length; i++)
+			historyOf(panes[i]).clear();
+		Actions.updateUndoState();
+	}
+	
+	/** Troca o texto de um editor como um único passo de desfazer. */
+	private static void setTextAsOneEdit(JEditorPane pane, String text)
+	{
+		EditHistory h = historyOf(pane);
+		h.beginCompound();
+		try
+		{
+			pane.setText(text);
+		}
+		finally
+		{
+			h.endCompound();
+		}
 	}
 				
 	private JPanel createPanel(String caption, final JEditorPane comp, Document doc)
@@ -250,8 +336,43 @@ public class InputPane extends JPanel implements MouseListener, UndoableEditList
 		comp.setDocument(doc);
 		
 		comp.getDocument().addUndoableEditListener(this);
-		comp.getKeymap().addActionForKeyStroke((KeyStroke)Actions.undo.getValue(Action.ACCELERATOR_KEY), Actions.undo);
-		comp.getKeymap().addActionForKeyStroke((KeyStroke)Actions.redo.getValue(Action.ACCELERATOR_KEY), Actions.redo);
+		((SyntaxDocument)doc).getHistory().addChangeListener(new ChangeListener()
+		{
+			public void stateChanged(ChangeEvent e)
+			{
+				Actions.updateUndoState();
+			}
+		});
+		comp.addFocusListener(new FocusAdapter()
+		{
+			public void focusGained(FocusEvent e)
+			{
+				activeEditor = comp;
+				Actions.updateUndoState();
+			}
+		});
+		
+		// Atalhos só deste editor. A versão original os colocava no Keymap padrão do Swing,
+		// que é compartilhado por todos os campos de texto (inclusive o do simulador).
+		InputMap im = comp.getInputMap(JComponent.WHEN_FOCUSED);
+		ActionMap am = comp.getActionMap();
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK), "gals-undo");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, InputEvent.CTRL_DOWN_MASK), "gals-redo");
+		im.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, InputEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK), "gals-redo");
+		am.put("gals-undo", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				undo(comp);
+			}
+		});
+		am.put("gals-redo", new AbstractAction()
+		{
+			public void actionPerformed(ActionEvent e)
+			{
+				redo(comp);
+			}
+		});
 					
 		pnl.add(new JLabel(caption), BorderLayout.NORTH);
 		

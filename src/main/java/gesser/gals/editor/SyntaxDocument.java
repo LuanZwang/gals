@@ -3,7 +3,7 @@ package gesser.gals.editor;
 import java.awt.Color;
 import java.awt.Font;
 
-import javax.swing.event.UndoableEditListener;
+import javax.swing.event.UndoableEditEvent;
 import javax.swing.text.*;
 
 public abstract class SyntaxDocument extends DefaultStyledDocument
@@ -59,62 +59,99 @@ public abstract class SyntaxDocument extends DefaultStyledDocument
 	
 	protected abstract void apply(int startOffset, int endOffset, String input) throws BadLocationException;
 	
-	public void insertString(int offset, String str, AttributeSet a) throws BadLocationException 
-	{	
-		super.insertString(offset, str, a);
-		
-		int start = offset;
-		int end = start+str.length();
-		
-		int length = getLength();		
-		
-		String text = getText(0, length);
-		
-		start--;
-		while (start >= 0 && text.charAt(start) != '\n')
-			start--;
-		start++;
-		
-		while (end < length && text.charAt(end) != '\n')
-			end++;
+	private final EditHistory history = new EditHistory(this);
+	private boolean coloring;
 
-		refresh(start, end, text);
+	public EditHistory getHistory()
+	{
+		return history;
+	}
+
+	public void insertString(int offset, String str, AttributeSet a) throws BadLocationException 
+	{
+		if (str == null || str.length() == 0)
+			return;
+
+		super.insertString(offset, str, a);
+		history.recordInsert(offset, str);
+		refreshLines(offset, offset+str.length());
 	}
 	
 	public void remove(int offset, int length) throws BadLocationException
 	{
+		if (length <= 0)
+			return;
+
+		String removed = getText(offset, length);
 		super.remove(offset, length);
-		
-		int start = offset;
-		int end = start;
-		
-		length = getLength();
+		history.recordRemove(offset, removed);
+		refreshLines(offset, offset);
+	}
 
+	/** Substituir a seleção (digitar por cima, colar) é um único passo de desfazer. */
+	public void replace(int offset, int length, String text, AttributeSet attrs) throws BadLocationException
+	{
+		history.beginCompound();
+		try
+		{
+			super.replace(offset, length, text, attrs);
+		}
+		finally
+		{
+			history.endCompound();
+		}
+	}
+
+	private void refreshLines(int start, int end) throws BadLocationException
+	{
+		int length = getLength();
 		String text = getText(0, length);
-
+		
 		start--;
 		while (start >= 0 && text.charAt(start) != '\n')
 			start--;
 		start++;
 
+		if (end > length)
+			end = length;
 		while (end < length && text.charAt(end) != '\n')
 			end++;
 
 		refresh(start, end, text);
 	}
 
+	/**
+	 * Aplica o realce sem gerar eventos de desfazer.
+	 *
+	 * A versão original removia os UndoableEditListeners durante o realce e os recolocava
+	 * depois, sem try/finally: qualquer exceção em apply() deixava o editor sem listener,
+	 * e o Ctrl+Z parava de funcionar até reiniciar o GALS.
+	 */
 	private void refresh(int start, int end, String text)
-		throws BadLocationException
 	{
-		UndoableEditListener[] listeners = getUndoableEditListeners();
-		for (int i=0; i<listeners.length; i++)
+		coloring = true;
+		try
 		{
-			removeUndoableEditListener(listeners[i]);
+			apply(start, end, text);
 		}
-		apply(start, end, text);
-		for (int i=0; i<listeners.length; i++)
+		catch (BadLocationException e)
 		{
-			addUndoableEditListener(listeners[i]);
+			e.printStackTrace();
 		}
+		catch (RuntimeException e)
+		{
+			// um erro no realce nunca deve impedir a edição do texto
+			e.printStackTrace();
+		}
+		finally
+		{
+			coloring = false;
+		}
+	}
+
+	protected void fireUndoableEditUpdate(UndoableEditEvent e)
+	{
+		if (!coloring)
+			super.fireUndoableEditUpdate(e);
 	}
 }
