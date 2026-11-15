@@ -62,12 +62,14 @@ public class InputPane extends JPanel implements MouseListener, UndoableEditList
 	private JPanel pnlDefinitions  = createPanel(" Definições Regulares", definitions, new DefinitionsDocument());
 	
 	private int mode;
+	private JSplitPane mainSplit;
 	
 	public InputPane()
 	{
 		super (new BorderLayout());
 		
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, base, new JScrollPane(errorList));
+		mainSplit = split;
 		split.setResizeWeight(0.9);
 		add(split);
 		
@@ -311,6 +313,63 @@ public class InputPane extends JPanel implements MouseListener, UndoableEditList
 		for (int i=0; i<panes.length; i++)
 			historyOf(panes[i]).clear();
 		Actions.updateUndoState();
+	}
+	
+	/** Reposiciona a lista de erros (~15% da altura) depois que a janela muda de tamanho. */
+	public void fitErrorList()
+	{
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run()
+			{
+				mainSplit.setDividerLocation(0.85);
+			}
+		});
+	}
+	
+	/** Editor de uma seção: 0 definições regulares, 1 tokens, 2 não-terminais, 3 gramática. */
+	public JEditorPane sectionEditor(int section)
+	{
+		switch (section)
+		{
+			case 0:  return definitions;
+			case 1:  return tokens;
+			case 2:  return nonTerminals;
+			default: return grammar;
+		}
+	}
+	
+	/**
+	 * Substitui um trecho de uma seção como um único passo de desfazer (usado pelo assistente de IA).
+	 * Seleciona e rola até o trecho alterado para o usuário ver a mudança.
+	 */
+	public void replaceInSection(int section, int offset, int length, String text) throws javax.swing.text.BadLocationException
+	{
+		JEditorPane pane = sectionEditor(section);
+		SyntaxDocument doc = (SyntaxDocument)pane.getDocument();
+		EditHistory h = doc.getHistory();
+		h.beginCompound();
+		try
+		{
+			doc.replace(offset, length, text, null);
+		}
+		finally
+		{
+			h.endCompound();
+		}
+		int end = Math.min(offset + text.length(), doc.getLength());
+		pane.select(offset, end);
+		try
+		{
+			java.awt.Rectangle r = pane.modelToView(offset);
+			if (r != null)
+				pane.scrollRectToVisible(r);
+		}
+		catch (javax.swing.text.BadLocationException e)
+		{
+			// só rolagem
+		}
+		MainWindow.getInstance().setChanged();
 	}
 	
 	/** Troca o texto de um editor como um único passo de desfazer. */

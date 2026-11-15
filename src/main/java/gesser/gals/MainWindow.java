@@ -8,6 +8,11 @@ import gesser.gals.util.GalsData;
 import gesser.gals.util.MetaException;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
@@ -45,6 +50,49 @@ public class MainWindow extends JFrame
 	private boolean needRebuildGram = true;	
 	private FiniteAutomata fa = null;
 	private Grammar gram = null;
+	
+	private gesser.gals.ai.AssistantPanel assistantPanel;
+	private JSplitPane assistantSplit;
+	private final Action toggleAssistant = new AbstractAction("Assistente IA")
+	{
+		{
+			putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_MASK));
+			putValue(SHORT_DESCRIPTION, "Mostrar/ocultar o assistente de IA (Ctrl+I)");
+		}
+		
+		public void actionPerformed(ActionEvent e)
+		{
+			toggleAssistant();
+		}
+	};
+	
+	/** Mostra ou esconde o painel do assistente de IA à direita dos editores. */
+	public void toggleAssistant()
+	{
+		Container cp = getContentPane();
+		if (assistantSplit != null && assistantSplit.getParent() == cp)
+		{
+			cp.remove(assistantSplit);
+			cp.add(inPane);
+		}
+		else
+		{
+			if (assistantPanel == null)
+				assistantPanel = new gesser.gals.ai.AssistantPanel();
+			cp.remove(inPane);
+			assistantSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, inPane, assistantPanel);
+			assistantSplit.setResizeWeight(0.65);
+			cp.add(assistantSplit);
+			if (getWidth() < 1100)
+			{
+				setSize(Math.min(1200, Toolkit.getDefaultToolkit().getScreenSize().width - 40), Math.max(getHeight(), 650));
+				gesser.gals.GALS.centralize(this);
+			}
+		}
+		cp.validate();
+		cp.repaint();
+		inPane.fitErrorList();
+	}
 	
 	public InputPane getInputPane()
 	{
@@ -191,6 +239,8 @@ public class MainWindow extends JFrame
 		tools.add(useless);
 		tools.addSeparator();
 		tools.add(new JMenuItem(Actions.options));
+		tools.addSeparator();
+		tools.add(new JMenuItem(toggleAssistant));
     	
     	grammar.add(new JMenuItem(Actions.factored));
     	grammar.add(new JMenuItem(Actions.recursion));
@@ -255,6 +305,10 @@ public class MainWindow extends JFrame
 		toolbar.addSeparator();
 		
 		toolbar.add(Actions.options);
+		
+		toolbar.addSeparator();
+		
+		toolbar.add(toggleAssistant).setFocusable(false);
 	}
     
 	public void setPanesMode(int mode)
