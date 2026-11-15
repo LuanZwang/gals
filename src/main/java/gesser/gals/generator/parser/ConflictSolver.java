@@ -20,6 +20,17 @@ public class ConflictSolver extends Box implements LLConflictSolver, LRConflictS
 {
     private static final ConflictSolver instance = new ConflictSolver();
     public static ConflictSolver getInstance(){ return instance; }
+    
+    private static Object delegate;
+    
+    /**
+     * Substitui o diálogo de escolha de conflito (ex.: no modo sem janela). O objeto deve
+     * implementar LLConflictSolver e LRConflictSolver; null volta ao diálogo.
+     */
+    public static void setDelegate(Object solver)
+    {
+        delegate = solver;
+    }
    
        
     private DefaultListModel conflictListModel = new DefaultListModel();
@@ -47,7 +58,10 @@ public class ConflictSolver extends Box implements LLConflictSolver, LRConflictS
      */
 
     public int resolve(Grammar g, BitSet conflict, int input, int stackTop)
-    {        
+    {
+        if (delegate != null)
+            return ((LLConflictSolver)delegate).resolve(g, conflict, input, stackTop);
+        
         String in;
         if (input == 0)
             in = "$";
@@ -75,6 +89,9 @@ public class ConflictSolver extends Box implements LLConflictSolver, LRConflictS
 
     public int resolve(Grammar g, Command[] conflict, int state, int input)
     {
+        if (delegate != null)
+            return ((LRConflictSolver)delegate).resolve(g, conflict, state, input);
+        
         String in;
         if (input == 0)
             in = "$";

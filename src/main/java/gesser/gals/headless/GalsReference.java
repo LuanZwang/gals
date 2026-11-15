@@ -1,0 +1,57 @@
+package gesser.gals.headless;
+
+/** Guia curto da sintaxe .gals, entregue à IA (ferramenta gals_reference e prompt do assistente). */
+public final class GalsReference {
+    private GalsReference() {
+    }
+
+    public static final String TEXT =
+        "# Formato de uma especificação GALS (.gals)\n"
+      + "\n"
+      + "O arquivo tem até 5 seções, cada uma iniciada por uma linha #Nome:\n"
+      + "\n"
+      + "#Options\n"
+      + "  GenerateScanner = true|false      (gera o léxico)\n"
+      + "  GenerateParser  = true|false      (gera o sintático)\n"
+      + "  Language = Java | C++ | Delphi\n"
+      + "  ScannerName = Lexico   ParserName = Sintatico   SemanticName = Semantico\n"
+      + "  Package = nome.do.pacote          (opcional, Java)\n"
+      + "  ScannerCaseSensitive = true|false\n"
+      + "  ScannerTable = Full | Compact | Hardcode\n"
+      + "  Input = String | Stream\n"
+      + "  Parser = LL | RD | SLR | LALR | LR   (LL = LL(1) por tabela, RD = descendente recursivo)\n"
+      + "\n"
+      + "#RegularDefinitions   (só com GenerateScanner)\n"
+      + "  nome : expressão_regular          uma por linha; usada depois como {nome}\n"
+      + "  Ex.: dig : [0-9]     letra : [a-zA-Z]\n"
+      + "\n"
+      + "#Tokens\n"
+      + "  nome : ER              token com nome\n"
+      + "  nome :! ER             o '!' desliga o backtracking do léxico para esse token\n"
+      + "  \"+\"                    token literal (o próprio lexema é o nome)\n"
+      + "  base_esp = base : \"lexema\"   caso especial: quando 'base' casar exatamente com \"lexema\",\n"
+      + "                               o token vira 'base_esp' (palavras reservadas). Ex.: if = id : \"if\"\n"
+      + "  : ER                   ignorado (espaços)        :! ER   ignorado sem backtracking (comentários)\n"
+      + "  Sem GenerateScanner, a seção lista só os nomes dos tokens, um por linha.\n"
+      + "\n"
+      + "Expressões regulares: concatenação por justaposição, | alternativa, * + ? repetição, ( ) grupo,\n"
+      + "  [abc] [a-z] [^...] classes, . qualquer caractere, \"texto\" literal, \\n \\t \\s \\\" escapes, {def} definição.\n"
+      + "  Espaços dentro da ER são ignorados (use \\s ou \" \" para o caractere espaço).\n"
+      + "  Comentários de linha com // em #RegularDefinitions e #Tokens.\n"
+      + "\n"
+      + "#NonTerminals   (só com GenerateParser)\n"
+      + "  <nome>   um por linha. O PRIMEIRO é o símbolo inicial.\n"
+      + "\n"
+      + "#Grammar\n"
+      + "  <A> ::= <B> token \"+\" #1 <C> | î ;\n"
+      + "  - alternativas com |, produção termina com ;\n"
+      + "  - î é a sentença vazia (epsilon)\n"
+      + "  - #n é uma ação semântica: chama executeAction(n, token) no Semantico\n"
+      + "  - terminais: nomes de #Tokens ou literais entre aspas; todo não-terminal deve estar em #NonTerminals\n"
+      + "\n"
+      + "Para Parser = LL ou RD a gramática precisa ser LL(1): sem recursão à esquerda, fatorada,\n"
+      + "e sem conflitos FIRST/FOLLOW (terceira condição). Para corrigir:\n"
+      + "  recursão à esquerda  <E> ::= <E> \"+\" <T> | <T>;   →   <E> ::= <T> <E_>;  <E_> ::= \"+\" <T> <E_> | î;\n"
+      + "  fatoração            <A> ::= x <B> | x <C>;       →   <A> ::= x <A_>;   <A_> ::= <B> | <C>;\n"
+      + "Ao mudar a gramática, preserve as ações semânticas #n na mesma posição relativa aos símbolos.\n";
+}

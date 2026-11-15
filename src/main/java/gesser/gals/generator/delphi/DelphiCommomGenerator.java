@@ -1,7 +1,6 @@
 package gesser.gals.generator.delphi;
 
 import gesser.gals.generator.Options;
-import gesser.gals.generator.OptionsDialog;
 import gesser.gals.generator.parser.Grammar;
 import gesser.gals.generator.parser.ll.LLParser;
 import gesser.gals.generator.parser.ll.NotLLException;
@@ -494,7 +493,7 @@ public class DelphiCommomGenerator
 		if (g == null)
 			return "";
 		
-		switch (OptionsDialog.getInstance().getOptions().parser)
+		switch (Options.current().parser)
 		{
 			case Options.PARSER_REC_DESC:
 				return 

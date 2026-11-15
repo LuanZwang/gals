@@ -2,7 +2,7 @@ package gesser.gals.simulator;
 
 import gesser.gals.analyser.LexicalError;
 import gesser.gals.analyser.Token;
-import gesser.gals.generator.OptionsDialog;
+import gesser.gals.generator.Options;
 import gesser.gals.generator.scanner.FiniteAutomata;
 
 /**
@@ -19,7 +19,7 @@ public class FiniteAutomataSimulator implements BasicScanner
 	public FiniteAutomataSimulator(FiniteAutomata fa)
 	{
 		this.fa = fa;		
-		sensitive = OptionsDialog.getInstance().getOptions().scannerCaseSensitive;
+		sensitive = Options.current().scannerCaseSensitive;
 	}
 	
 	public int analyse(String str)

@@ -11,6 +11,29 @@ import java.util.StringTokenizer;
 
 public class Options
 {
+	private static Options current;
+	
+	/**
+	 * Opções em uso pelo núcleo (geradores, autômato, fábrica LR). Na interface gráfica são as
+	 * do diálogo de opções; no modo sem janela (CLI/MCP), as definidas por {@link #setCurrent}.
+	 * A versão original lia sempre do OptionsDialog, o que exigia uma janela Swing.
+	 */
+	public static Options current()
+	{
+		return current != null ? current : OptionsDialog.getInstance().getOptions();
+	}
+	
+	/** Opções definidas por {@link #setCurrent}, ou null se o núcleo está usando o diálogo. */
+	public static Options peekCurrent()
+	{
+		return current;
+	}
+	
+	public static void setCurrent(Options options)
+	{
+		current = options;
+	}
+	
 	public String scannerName  = "Lexico";
 	public String parserName   = "Sintatico";
 	public String semanticName = "Semantico";
@@ -187,7 +210,7 @@ public class Options
 			if (value.equalsIgnoreCase("Stream"))
 				input = INPUT_STREAM;
 			else if (value.equalsIgnoreCase("String"))
-				input = INPUT_STREAM;
+				input = INPUT_STRING; // a versão original atribuía INPUT_STREAM aqui
 			else
 				throw new XMLParsingException("Erro processando arquivo");
 		}

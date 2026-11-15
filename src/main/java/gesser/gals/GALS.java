@@ -32,6 +32,24 @@ public class GALS
     
     public static void main(String[] args)
     {
+        if (args.length > 0)
+        {
+            // modo linha de comando / servidor MCP: nada de janelas
+            System.setProperty("java.awt.headless", "true");
+            int code;
+            try
+            {
+                code = gesser.gals.headless.Cli.run(args);
+            }
+            catch (Exception e)
+            {
+                System.err.println("Erro: " + e.getMessage());
+                code = 2;
+            }
+            System.exit(code);
+            return;
+        }
+        
         try
         {
             /*

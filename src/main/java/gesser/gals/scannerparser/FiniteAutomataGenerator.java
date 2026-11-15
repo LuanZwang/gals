@@ -1,7 +1,7 @@
 package gesser.gals.scannerparser;
 
 import gesser.gals.analyser.SemanticError;
-import gesser.gals.generator.OptionsDialog;
+import gesser.gals.generator.Options;
 import gesser.gals.generator.scanner.*;
 import gesser.gals.util.BitSetIterator;
 
@@ -31,7 +31,7 @@ public class FiniteAutomataGenerator implements Constants
 	
 	public FiniteAutomataGenerator()
 	{		
-		sensitive = OptionsDialog.getInstance().getOptions().scannerCaseSensitive;
+		sensitive = Options.current().scannerCaseSensitive;
 	}
 	
 	private BitSet[] next;
