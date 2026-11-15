@@ -5,8 +5,7 @@ original** (`gals-src.zip`, versão de 03/10/2003, a mesma do `gals.jar` distrib
 integração com IA.
 
 O histórico começa pelo fonte original sem nenhuma alteração. Depois vêm a conversão para UTF-8 e cada
-mudança, em commits separados. A branch `base-descompilada` guarda a primeira versão deste trabalho,
-feita a partir do `gals.jar` descompilado, antes de o fonte original ser encontrado.
+mudança, em commits separados.
 
 ## Compilar e executar
 
