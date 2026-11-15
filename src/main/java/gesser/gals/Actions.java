@@ -81,7 +81,7 @@ public class Actions
 	{
 		if (! saved && changed)
 		{
-			switch (JOptionPane.showConfirmDialog(MainWindow.getInstance(),"Salvar AlteraÁıes?"))
+			switch (JOptionPane.showConfirmDialog(MainWindow.getInstance(),"Salvar Altera√ß√µes?"))
 			{
 				case JOptionPane.YES_OPTION:
 					save.actionPerformed(null);
@@ -113,7 +113,7 @@ public class Actions
 			String msg = 
 				"G.A.L.S.\n"+
 				"Gerador de Analisadores\n"+
-				"LÈxicos e Sint·ticos (Vers„o 2003.10.03)\n"+
+				"L√©xicos e Sint√°ticos (Vers√£o 2003.10.03)\n"+
 				"\n"+
 				"Carlos Eduardo Gesser\n"+
 				"gals.sourceforge.net";
@@ -121,16 +121,16 @@ public class Actions
 		}		
 	};
 	
-	public static final Action doc = new AbstractAction("DocumentaÁ„o")
+	public static final Action doc = new AbstractAction("Documenta√ß√£o")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{
 			URL url = ClassLoader.getSystemResource("help.html");
-			HTMLDialog.getInstance().show("DocumentaÁ„o", url);
+			HTMLDialog.getInstance().show("Documenta√ß√£o", url);
 		}		
 	};
 	
-	public static final Action options = new ToolTipedAction("OpÁıes", OPTIONS)
+	public static final Action options = new ToolTipedAction("Op√ß√µes", OPTIONS)
 	{
 		
 		public void actionPerformed(ActionEvent e) 
@@ -226,7 +226,7 @@ public class Actions
                 catch (XMLParsingException e1)
                 {    
                 	e1.printStackTrace();            	
-                    msg = "Arquivo inv·lido!!!";
+                    msg = "Arquivo inv√°lido!!!";
                     JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
                 }    
                 catch (IOException e1)
@@ -237,7 +237,7 @@ public class Actions
 		}		
 	};
 	
-	public static final Action showTable = new AbstractAction("Tabela de An·lise Sint·tica")
+	public static final Action showTable = new AbstractAction("Tabela de An√°lise Sint√°tica")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{
@@ -250,13 +250,13 @@ public class Actions
 					case Options.PARSER_REC_DESC:
 					case Options.PARSER_LL:
 						LLParser llg = new LLParser(g);
-						HTMLDialog.getInstance().show("Tabela de An·lise LL(1)", llg.tableAsHTML());
+						HTMLDialog.getInstance().show("Tabela de An√°lise LL(1)", llg.tableAsHTML());
 						break;
 					case Options.PARSER_SLR:
 					case Options.PARSER_LALR:
 					case Options.PARSER_LR:
             			LRGenerator parser = LRGeneratorFactory.createGenerator(g);
-         				HTMLDialog.getInstance().show("Tabela de An·lise SLR(1)", parser.tableAsHTML());
+         				HTMLDialog.getInstance().show("Tabela de An√°lise SLR(1)", parser.tableAsHTML());
             			break;
 				}
 			} 
@@ -266,7 +266,7 @@ public class Actions
             }       
 			catch (NotLLException e1)
 			{
-				String msg = "Esta gram·tica n„o È LL(1): "+e1.getMessage();
+				String msg = "Esta gram√°tica n√£o √© LL(1): "+e1.getMessage();
 				JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
 				e1.printStackTrace();
 			}       
@@ -304,14 +304,14 @@ public class Actions
             }
             catch (NotLLException e1)
 			{
-				String msg = "Esta gram·tica n„o È LL(1): "+e1.getMessage();
+				String msg = "Esta gram√°tica n√£o √© LL(1): "+e1.getMessage();
 				JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
 				e1.printStackTrace();
 			}            
 		}		
 	};
 	
-	public static final Action factored = new AbstractAction("FatoraÁ„o")
+	public static final Action factored = new AbstractAction("Fatora√ß√£o")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{        	
@@ -322,18 +322,18 @@ public class Actions
                 Grammar g = MainWindow.getInstance().getGrammar();
                 BitSet bs = g.getNonFactoratedProductions();
                 if (bs.cardinality() == 0)
-                    msg = "Est· fatorada";
+                    msg = "Est√° fatorada";
                 else
                 {
                     StringBuffer bfr = new StringBuffer();
-                    bfr.append("As produÁıes\n");
+                    bfr.append("As produ√ß√µes\n");
                     for (int i=bs.nextSetBit(0); i>=0; i=bs.nextSetBit(i+1))
                     {
                         bfr.append(i).append(": ")
                             .append(g.getProductions().getProd(i))
                             .append('\n');
                     }
-                    bfr.append("N„o est„o fatoradas");
+                    bfr.append("N√£o est√£o fatoradas");
                     msg = bfr.toString();
                 }
 				JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
@@ -345,7 +345,7 @@ public class Actions
 		}		
 	};
 	
-	public static final Action recursion = new AbstractAction("Recurs„o ‡ Esquerda")
+	public static final Action recursion = new AbstractAction("Recurs√£o √† Esquerda")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{        	
@@ -356,14 +356,14 @@ public class Actions
                 Grammar g = MainWindow.getInstance().getGrammar(); 
                 int s = g.getLeftRecursiveSimbol();
                 if (s == -1)
-                    msg = "N√O possui recurs„o";
+                    msg = "N√ÉO possui recurs√£o";
                 else
-                    msg = "Foi detectada recurs„o ‡ esquerda (direta ou indireta)\n" +                        " em produÁıes iniciadas por \""+g.getSymbols()[s]+"\"";
+                    msg = "Foi detectada recurs√£o √† esquerda (direta ou indireta)\n" +                        " em produ√ß√µes iniciadas por \""+g.getSymbols()[s]+"\"";
                     /*                   
                 if (g.hasLeftRecursion())
-                    msg = "Possui recurs„o";
+                    msg = "Possui recurs√£o";
                 else
-                    msg = "N√O possui recurs„o";
+                    msg = "N√ÉO possui recurs√£o";
                 */
                 JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
             }
@@ -374,7 +374,7 @@ public class Actions
 		}		
 	};
 	
-	public static final Action removeUnitary = new AbstractAction("Remover ProduÁıes Unit·rias")
+	public static final Action removeUnitary = new AbstractAction("Remover Produ√ß√µes Unit√°rias")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{        	
@@ -386,7 +386,7 @@ public class Actions
                 OLD_GRAMMAR = (Grammar) g.clone();
                 g.removeUnitaryProductions();
                 //MainWindow.getInstance().updateData(null, g);
-                msg = "ProduÁıes Unit·rias Removidas";
+                msg = "Produ√ß√µes Unit√°rias Removidas";
                 
                 JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
             }
@@ -397,7 +397,7 @@ public class Actions
 		}		
 	};
 	
-	public static final Action condition3 = new AbstractAction("Terceira CondiÁ„o LL(1)")
+	public static final Action condition3 = new AbstractAction("Terceira Condi√ß√£o LL(1)")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{
@@ -407,9 +407,9 @@ public class Actions
             	
                 Grammar g = MainWindow.getInstance().getGrammar();
                 if (g.passThirdCondition())
-                    msg = "Passou na 3a condiÁ„o";
+                    msg = "Passou na 3a condi√ß√£o";
                 else
-                    msg = "N√O passou na 3a condiÁ„o";
+                    msg = "N√ÉO passou na 3a condi√ß√£o";
                     
 				JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
             }          
@@ -420,7 +420,7 @@ public class Actions
         }		
 	};
 	
-	public static final Action removeUseless = new AbstractAction("Remover Simbolos In˙teis")
+	public static final Action removeUseless = new AbstractAction("Remover Simbolos In√∫teis")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{			
@@ -434,11 +434,11 @@ public class Actions
                 {
                     g.removeUselessSymbols();                    
                     //MainWindow.getInstance().updateData(null, g);
-                	msg = "SÌmbolos inÌteis removidos";
+                	msg = "S√≠mbolos in√≠teis removidos";
                 }
                 catch (EmptyGrammarException e1)
                 {
-                    msg = "Gram·tica Vazia!!!";
+                    msg = "Gram√°tica Vazia!!!";
                 }	            
                 JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
             }
@@ -472,7 +472,7 @@ public class Actions
         }		
 	};
 	
-	public static final Action removeRecursion = new AbstractAction("Remover Recurs„o ‡ Esquerda")
+	public static final Action removeRecursion = new AbstractAction("Remover Recurs√£o √† Esquerda")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{			
@@ -483,7 +483,7 @@ public class Actions
                 OLD_GRAMMAR = (Grammar) g.clone();
                 g.removeRecursion();
                 //MainWindow.getInstance().updateData(null, g);
-                msg = "Recursıes a esquerda removidas";
+                msg = "Recurs√µes a esquerda removidas";
                 
                 JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
             }
@@ -514,7 +514,7 @@ public class Actions
 				}
 				catch (LeftRecursionException e1)
 	            {
-	                msg = "ImpossÌvel fatorar, a gram·tica possui recurs„o a esquerda";
+	                msg = "Imposs√≠vel fatorar, a gram√°tica possui recurs√£o a esquerda";
 	            }	            
                 
                 JOptionPane.showMessageDialog(MainWindow.getInstance(),msg);
@@ -572,7 +572,7 @@ public class Actions
         }		
 	};
 	
-	public static final Action viewLexTable = new AbstractAction("Tabela de An·lise LÈxica")
+	public static final Action viewLexTable = new AbstractAction("Tabela de An√°lise L√©xica")
 		{
 			public void actionPerformed(ActionEvent e)
 			{
@@ -638,14 +638,14 @@ public class Actions
 		}	
 	};
 	
-	public static final Action useless = new AbstractAction("SÌmbolos in˙teis")
+	public static final Action useless = new AbstractAction("S√≠mbolos in√∫teis")
 	{
 		public void actionPerformed(ActionEvent e) 
 		{			
 			try
 			{
 				Grammar g = MainWindow.getInstance().getGrammar();
-				HTMLDialog.getInstance().show("SÌmbolos in˙ties", g.uselessSymbolsHTML());
+				HTMLDialog.getInstance().show("S√≠mbolos in√∫ties", g.uselessSymbolsHTML());
 			}
 			catch(MetaException e1)
 			{
@@ -654,7 +654,7 @@ public class Actions
 		}
 	};
 	
-	public static final Action genCode = new ToolTipedAction("Gerar CÛdigo", GENERATOR)
+	public static final Action genCode = new ToolTipedAction("Gerar C√≥digo", GENERATOR)
 	{
 		public void actionPerformed(ActionEvent e) 
 		{			
@@ -736,7 +736,7 @@ public class Actions
             }		
 			catch (NotLLException e1)
 			{
-				JOptionPane.showMessageDialog(MainWindow.getInstance(), "Esta gram·tica n„o È LL(1): "+e1.getMessage());
+				JOptionPane.showMessageDialog(MainWindow.getInstance(), "Esta gram√°tica n√£o √© LL(1): "+e1.getMessage());
 				e1.printStackTrace();
 			}
         }
@@ -754,7 +754,7 @@ public class Actions
 			}
 			catch (AnalysisError ae)
 			{
-				JOptionPane.showMessageDialog(MainWindow.getInstance(), "N„o foi possÌvel importar o arquivo");
+				JOptionPane.showMessageDialog(MainWindow.getInstance(), "N√£o foi poss√≠vel importar o arquivo");
 				ae.printStackTrace();
 			}
 			catch (IOException ioe)

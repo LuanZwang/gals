@@ -346,7 +346,7 @@ public class JavaParserGenerator
 		"        if (p >= 0)\n"+
 		"        {\n"+
 		"            int[] production = PRODUCTIONS[p];\n"+
-		"            //empilha a produção em ordem reversa\n"+
+		"            //empilha a produÃ§Ã£o em ordem reversa\n"+
 		"            for (int i=production.length-1; i>=0; i--)\n"+
 		"            {\n"+
 		"                stack.push(new Integer(production[i]));\n"+
@@ -504,7 +504,7 @@ public class JavaParserGenerator
 		"{\n"+
 		"    public void executeAction(int action, Token token)	throws SemanticError\n"+
 		"    {\n"+
-		"        System.out.println(\"Ação #\"+action+\", Token: \"+token);\n"+
+		"        System.out.println(\"AÃ§Ã£o #\"+action+\", Token: \"+token);\n"+
 		"    }	\n"+
 		"}\n"+
 		"";
