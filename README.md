@@ -64,8 +64,13 @@ Sem as opções novas, a geração de código é idêntica à do `gals.jar` orig
 ## Licença e créditos
 
 GALS foi desenvolvido por **Carlos Eduardo Gesser** como trabalho de conclusão de curso na UFSC, com orientação do
-Prof. Olinto José Varela Furtado. O código-fonte é distribuído sob a **Licença Pública Geral GNU (GPL)**
-(<https://gals.sourceforge.net/help.html>); a página não indica a versão.
+Prof. Olinto José Varela Furtado. A ajuda oficial (<https://gals.sourceforge.net/help.html>) diz que
+"Seu código fonte é liberado sob a Licença Publica GNU", sem indicar a versão.
 
-Este repositório é uma versão modificada, distribuída sob a mesma licença. As modificações estão descritas acima
-e no histórico de commits.
+Este repositório é uma versão modificada e é distribuído sob a **GNU General Public License, versão 3**
+(arquivo [LICENSE](LICENSE)). Quando o programa não especifica a versão, a própria GPL permite escolher qualquer
+versão publicada pela Free Software Foundation. A versão 3 foi escolhida por ser compatível com as bibliotecas
+Apache 2.0 (OkHttp, Jackson, Kotlin) embutidas no jar do assistente.
+
+As modificações em relação ao original estão descritas na seção "O que mudou em relação ao original" e no
+histórico de commits; o primeiro commit contém o fonte original sem alterações.
